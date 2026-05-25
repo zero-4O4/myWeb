@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — AnimeKu</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+
+    <div class="login-logo">📺</div>
+    <div class="login-title">AnimeKu</div>
+    <div class="login-sub">Masuk untuk lanjutkan</div>
+
+    <div id="errAlert" class="alert alert-err">⚠️ Username atau password salah.</div>
+
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="uInput" placeholder="Masukkan username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="pInput" placeholder="Masukkan password"
+             autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <button class="btn btn-primary btn-block" id="loginBtn" onclick="doLogin()">
+      Masuk
+    </button>
+
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">
+      Demo: <strong>admin</strong> / <strong>admin123</strong>
+      &nbsp;·&nbsp; <strong>user</strong> / <strong>user</strong>
+    </p>
+
+  </div>
+</div>
+
+<script>
+// Terapkan tema tersimpan
+if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+
+// SHA-256 hash dari password menggunakan Web Crypto API bawaan browser
+async function sha256(text) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Hash tersimpan (bukan plain text)
+// admin123 → sha256 → hash di bawah
+// Untuk ganti password: jalankan sha256("passwordBaru") di console, paste hasilnya di sini
+const ACCOUNTS = {
+  admin: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
+  user:  '04f8996da763b7a969b1028ee3007569eaf3a635486ddab211d512c85b9df8fb',
+};
+
+async function doLogin() {
+  const u   = document.getElementById('uInput').value.trim();
+  const p   = document.getElementById('pInput').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errAlert');
+
+  if (!u || !p) { showErr(err); return; }
+
+  btn.textContent = 'Memverifikasi...';
+  btn.disabled    = true;
+
+  const hash = await sha256(p);
+
+  if (ACCOUNTS[u] && ACCOUNTS[u] === hash) {
+    localStorage.setItem('loggedIn', 'true');
+    localStorage.setItem('username', u);
+    localStorage.setItem('email',    u + '@animeku.id');
+    window.location.href = u === 'admin' ? 'admin.html' : 'home.html';
+  } else {
+    btn.textContent = 'Masuk';
+    btn.disabled    = false;
+    document.getElementById('pInput').value = '';
+    document.getElementById('pInput').focus();
+    showErr(err);
+  }
+}
+
+function showErr(el) {
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

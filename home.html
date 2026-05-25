@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>AnimeKu — Nonton Anime Subtitle Indonesia</title>
+  <meta name="description" content="Nonton anime subtitle Indonesia terlengkap. Update setiap hari.">
+  <meta name="theme-color" content="#6c47ff">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Safe area untuk iPhone notch */
+    .bottomnav { padding-bottom: env(safe-area-inset-bottom); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── TOP NAV (desktop) ── -->
+  <nav class="topnav">
+    <span class="logo">📺 AnimeKu</span>
+    <div class="nav-links">
+      <button class="tnav-btn active" data-page="home"   onclick="navigate('home')">🏠 Home</button>
+      <button class="tnav-btn"        data-page="jadwal" onclick="navigate('jadwal')">📅 Jadwal</button>
+      <button class="tnav-btn"        data-page="search" onclick="navigate('search')">🔍 Cari</button>
+    </div>
+    <div class="top-search">
+      <span class="si">🔍</span>
+      <input type="search" placeholder="Cari anime..." oninput="topSearch(this.value)">
+    </div>
+    <button class="user-btn" onclick="navigate('profile')">👤</button>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <div class="content" id="content">
+    <!-- diisi oleh script.js -->
+  </div>
+
+  <!-- ── BOTTOM NAV (mobile) ── -->
+  <nav class="bottomnav">
+    <button class="nav-btn active" data-page="home"    onclick="navigate('home')">
+      <span class="ni">🏠</span><span>Home</span>
+    </button>
+    <button class="nav-btn" data-page="jadwal" onclick="navigate('jadwal')">
+      <span class="ni">📅</span><span>Jadwal</span>
+    </button>
+    <button class="nav-btn" data-page="search" onclick="navigate('search')">
+      <span class="ni">🔍</span><span>Cari</span>
+    </button>
+    <button class="nav-btn" data-page="profile" onclick="navigate('profile')">
+      <span class="ni">👤</span><span>Profil</span>
+    </button>
+  </nav>
+
+</div><!-- /.app -->
+
+<!-- ── DETAIL OVERLAY ── -->
+<div class="overlay" id="detailOverlay" onclick="handleOverlayClick(event,'detailOverlay')">
+  <div class="overlay-sheet" id="detailSheet"></div>
+</div>
+
+<!-- ── TRAILER OVERLAY ── -->
+<div class="overlay" id="trailerOverlay" onclick="handleOverlayClick(event,'trailerOverlay')">
+  <div class="overlay-sheet" style="border-radius:16px;padding:16px;max-width:640px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span id="trailerTitle" style="font-weight:700;font-size:15px;"></span>
+      <button onclick="closeTrailer()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <div class="video-wrap">
+      <iframe id="trailerFrame" allowfullscreen
+              allow="autoplay; encrypted-media"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleOverlayClick(e, id) {
+  if (e.target.id === id) {
+    if (id === 'detailOverlay') closeDetail();
+    if (id === 'trailerOverlay') closeTrailer();
+  }
+}
+function topSearch(val) {
+  if (val.trim().length > 1) {
+    navigate('search', val.trim());
+    // Update search input in page
+    setTimeout(() => {
+      const si = document.getElementById('sInput');
+      if (si) { si.value = val; }
+    }, 100);
+  }
+}
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — AnimeKu</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <nav class="topnav" style="display:flex;">
+    <span class="logo">📺 AnimeKu</span>
+    <span style="font-size:12px;color:var(--muted);margin-right:auto;">Admin Panel</span>
+    <a href="home.html" class="btn btn-ghost btn-sm" style="margin-right:8px;">🏠 Situs</a>
+    <button class="btn btn-danger btn-sm" onclick="doLogout()">🚪 Keluar</button>
+  </nav>
+
+  <div class="content" id="content">
+
+    <!-- Page head -->
+    <div class="page-head">
+      <span class="ph-title">🛡️ Dashboard Admin</span>
+      <span class="badge b-pink">Administrator</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="statsGrid">
+      <div class="stat-card"><div class="sc-icon">🎬</div><div class="sc-val" id="sAnime">—</div><div class="sc-label">Total Anime Dimuat</div></div>
+      <div class="stat-card"><div class="sc-icon">📡</div><div class="sc-val" id="sAiring">—</div><div class="sc-label">Sedang Tayang</div></div>
+      <div class="stat-card"><div class="sc-icon">⭐</div><div class="sc-val" id="sTopScore">—</div><div class="sc-label">Skor Tertinggi</div></div>
+      <div class="stat-card"><div class="sc-icon">👤</div><div class="sc-val">2</div><div class="sc-label">Akun Terdaftar</div></div>
+    </div>
+
+    <!-- Filter row -->
+    <div style="display:flex;gap:8px;align-items:center;padding:0 12px 12px;flex-wrap:wrap;">
+      <button class="genre-chip active" onclick="loadTable('top',this)">🏆 Top Anime</button>
+      <button class="genre-chip" onclick="loadTable('airing',this)">📡 Sedang Tayang</button>
+      <button class="genre-chip" onclick="loadTable('popular',this)">🔥 Terpopuler</button>
+      <span style="margin-left:auto;font-size:12px;color:var(--muted);" id="tableInfo">Memuat...</span>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Anime</th>
+            <th>Score</th>
+            <th>Episode</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="animeTable">
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:var(--muted);padding:12px;">
+      Data real-time dari Jikan API (MyAnimeList)
+    </p>
+
+  </div>
+</div>
+
+<script>
+// Proteksi route
+if (localStorage.getItem('username') !== 'admin') {
+  alert('Akses ditolak. Hanya admin yang diizinkan.');
+  window.location.href = 'login.html';
+}
+if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+
+async function jikan(path) {
+  const r = await fetch('https://api.jikan.moe/v4' + path);
+  const j = await r.json();
+  return j.data || [];
+}
+
+async function loadStats() {
+  try {
+    const [top, airing] = await Promise.all([
+      jikan('/top/anime?limit=25'),
+      jikan('/top/anime?filter=airing&limit=25'),
+    ]);
+    document.getElementById('sAnime').textContent    = top.length + '+';
+    document.getElementById('sAiring').textContent   = airing.length;
+    document.getElementById('sTopScore').textContent = top[0]?.score ?? '—';
+  } catch(e) {}
+}
+
+async function loadTable(filter, btn) {
+  document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const tbody = document.getElementById('animeTable');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">Memuat...</td></tr>';
+
+  try {
+    const map = { top: '/top/anime?limit=25', airing: '/top/anime?filter=airing&limit=25', popular: '/top/anime?filter=bypopularity&limit=25' };
+    const data = await jikan(map[filter] || map.top);
+    document.getElementById('tableInfo').textContent = data.length + ' anime dimuat';
+
+    tbody.innerHTML = data.map((a, i) => `
+      <tr>
+        <td style="color:var(--muted);font-weight:700;">${i+1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img src="${a.images?.jpg?.image_url||''}" alt="${a.title}"
+                 style="width:36px;height:50px;object-fit:cover;border-radius:6px;flex-shrink:0;"
+                 onerror="this.style.display='none'">
+            <div>
+              <div style="font-weight:600;font-size:13px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.title}</div>
+              <div style="font-size:11px;color:var(--muted);">${a.type||''}</div>
+            </div>
+          </div>
+        </td>
+        <td><span style="color:var(--yellow);font-weight:700;">⭐ ${a.score??'—'}</span></td>
+        <td style="color:var(--muted);">${a.episodes??'?'}</td>
+        <td>
+          <span class="badge ${a.airing?'b-green':'b-purple'}" style="font-size:10px;">
+            ${a.airing?'Tayang':'Selesai'}
+          </span>
+        </td>
+        <td>
+          <a href="https://myanimelist.net/anime/${a.mal_id}" target="_blank"
+             class="btn btn-ghost btn-sm" style="font-size:11px;padding:5px 10px;">
+            Detail
+          </a>
+        </td>
+      </tr>`).join('');
+
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#ff5252;">⚠️ Gagal memuat. Periksa koneksi.</td></tr>';
+  }
+}
+
+function doLogout() {
+  if (!confirm('Keluar dari admin panel?')) return;
+  localStorage.removeItem('loggedIn');
+  localStorage.removeItem('username');
+  window.location.href = 'login.html';
+}
+
+// Init
+loadStats();
+loadTable('top', document.querySelector('.genre-chip'));
+</script>
+</body>
+</html>
