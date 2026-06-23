@@ -75,7 +75,7 @@ async function doLogin() {
     localStorage.setItem('loggedIn', 'true');
     localStorage.setItem('username', u);
     localStorage.setItem('email',    u + '@animeku.id');
-    window.location.href = u === 'admin' ? 'admin.html' : 'home.html';
+    window.location.href = u === 'admin' ? 'admin.html' : 'index.html';
   } else {
     btn.textContent = 'Masuk';
     btn.disabled    = false;
